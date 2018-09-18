@@ -6,7 +6,70 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
-
+    window.onload = () => {
+      let content = document.getElementById('content');
+      let select = document.getElementById('page');
+      let type = document.getElementById('type');
+      let button = document.getElementById('send');
+      button.onclick = () => {
+        //Getting the page and response types
+        let url = select.value.substring(1);
+        if (type.value.endsWith("/xml"))
+          url += "?type=xml"
+      
+        //Defining the AJAX call
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+          //Setting the inner HTML of the content div
+          let responseText = '';
+          switch(select.value)
+          {
+            case '/success':
+              responseText = '<h1>Success</h1>';
+              break;
+            case '/badRequest':
+              responseText = '<h1>Bad Request</h1>';
+              break;
+            case '/unauthorized':
+              responseText = '<h1>Unauthorized</h1>';
+              break;
+            case '/forbidden':
+              responseText = '<h1>Forbidden</h1>';
+              break;
+            case '/internal':
+              responseText = '<h1>Internal Server Error</h1>';
+              break;
+            case '/notImplemented':
+              responseText = '<h1>Not Implemented</h1>';
+              break;
+            case '/notFound':
+              responseText = '<h1>Resource Not Found</h1>';
+              break;
+          }
+          
+          responseText += '<p><b>Message:</b> ';
+          
+          let responseObject = {};
+          if (xhttp.getResponseHeader('Content-Type').endsWith('/xml'))
+          {
+            let parser = new DOMParser();
+            responseObject = parser.parseFromString(xhttp.response, 'text/xml');
+            responseText += responseObject.getElementsByTagName('message')[0].childNodes[0].nodeValue;
+          }
+          else
+          {
+            responseObject = JSON.parse(xhttp.response);
+            responseText += responseObject.message;
+          }
+          console.dir(responseObject);
+          
+          responseText += '</p>';
+          content.innerHTML = responseText;
+        };
+        xhttp.open('GET', url, true);
+        xhttp.send();
+      };
+    };
   </script>
 </head>
 <body>
